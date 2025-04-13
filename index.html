@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tienda Legal de FC Legal Group</title>
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <header>
+    <h1>⚖️ Tienda Legal de FC Legal Group</h1>
+    <p>Asesorías Jurídicas Laborales</p>
+  </header>
+
+  <main class="contenedor">
+    <aside class="sidebar">
+      <h2>Filtrar servicios</h2>
+      <select id="categoria" onchange="filtrarCategoria()">
+        <option value="todas">Todos los Servicios</option>
+        <option value="consulta">Consulta Jurídica Laboral</option>
+        <option value="contrato">Revisión de Contrato</option>
+        <option value="juicio">Representación en Juicio</option>
+        <option value="despido">Despido Injustificado</option>
+        <option value="capacitacion">Capacitación a RRHH</option>
+        <option value="auditoria">Auditoría Legal</option>
+      </select>
+
+      <div class="carrito">
+        <h3>🛒 Carrito</h3>
+        <ul id="lista-carrito"></ul>
+        <p>Total: $<span id="total">0.00</span></p>
+        <p>Servicios: <span id="cantidad-carrito">0</span></p>
+        <button class="vaciar" onclick="vaciarCarrito()">Vaciar</button>
+        <button class="finalizar" onclick="finalizarCompra()">Finalizar</button>
+        <div id="paypal-button-container"></div>
+      </div>
+    </aside>
+
+    <section class="productos" id="productos"></section>
+  </main>
+
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+  <script src="script.js"></script>
+</body>
+</html>
