@@ -1,90 +1,99 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #f4f6f8;
-  color: #222;
+const productos = [
+  { id: 1, nombre: "Consulta Jurídica Laboral", precio: 150000, imagen: "https://st4.depositphotos.com/13193658/22026/i/950/depositphotos_220266824-stock-photo-high-angle-view-lawyer-client.jpg", categoria: "consulta" },
+  { id: 2, nombre: "Revisión de Contrato", precio: 300000, imagen: "https://www.gchnicaragua.com/wp-content/uploads/2024/05/contratos-bahia-blanca.jpg", categoria: "contrato" },
+  { id: 3, nombre: "Representación en Juicio", precio: 500000, imagen: "https://www.legaltoday.com/wp-content/uploads/2020/12/sala-juicio.jpg", categoria: "juicio" },
+  { id: 4, nombre: "Asesoría por Despido Injustificado", precio: 250000, imagen: "https://fc-abogados.com/wp-content/uploads/2014/06/Imagenes-para-post-52.jpg", categoria: "despido" },
+  { id: 5, nombre: "Capacitación a Recursos Humanos", precio: 600000, imagen: "https://www.bizneo.com/blog/wp-content/uploads/2020/01/area-de-recursos-humanos-810x455.jpg", categoria: "capacitacion" },
+  { id: 6, nombre: "Auditoría Legal Laboral", precio: 380000, imagen: "https://www.bufetegodinezyasociados.com/portals/0/ThemePluginPro/uploads/2021/5/25/AuditoriaLegal-01.jpg", categoria: "auditoria" }
+];
+
+let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+const contenedorProductos = document.getElementById("productos");
+const listaCarrito = document.getElementById("lista-carrito");
+const totalCarrito = document.getElementById("total");
+const cantidadCarrito = document.getElementById("cantidad-carrito");
+
+function mostrarProductos(filtro = "todas") {
+  contenedorProductos.innerHTML = "";
+  const filtrados = filtro === "todas" ? productos : productos.filter(p => p.categoria === filtro);
+  filtrados.forEach(prod => {
+    const div = document.createElement("div");
+    div.className = "producto";
+    div.innerHTML = `
+      <img src="${prod.imagen}" alt="${prod.nombre}">
+      <h3>${prod.nombre}</h3>
+      <p>Precio: $${prod.precio.toLocaleString()}</p>
+      <button class="agregar" onclick="agregarAlCarrito(${prod.id})">Agregar</button>
+    `;
+    contenedorProductos.appendChild(div);
+  });
 }
 
-header {
-  background: #1f3c88;
-  color: white;
-  padding: 30px 0;
-  text-align: center;
+function filtrarCategoria() {
+  const filtro = document.getElementById("categoria").value;
+  mostrarProductos(filtro);
 }
 
-.contenedor {
-  display: flex;
-  padding: 20px;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
+function agregarAlCarrito(id) {
+  const producto = productos.find(p => p.id === id);
+  const item = carrito.find(i => i.id === id);
+  if (item) {
+    item.cantidad++;
+  } else {
+    carrito.push({ ...producto, cantidad: 1 });
+  }
+  guardarCarrito();
+  actualizarCarrito();
 }
 
-.sidebar {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  width: 300px;
+function actualizarCarrito() {
+  listaCarrito.innerHTML = "";
+  let total = 0;
+  let cantidad = 0;
+  carrito.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.nombre} x${item.cantidad} - $${(item.precio * item.cantidad).toLocaleString()}`;
+    listaCarrito.appendChild(li);
+    total += item.precio * item.cantidad;
+    cantidad += item.cantidad;
+  });
+  totalCarrito.textContent = total.toLocaleString();
+  cantidadCarrito.textContent = cantidad;
 }
 
-.productos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: flex-start;
-  flex: 1;
-  max-width: 1000px;
+function guardarCarrito() {
+  localStorage.setItem("carrito", JSON.stringify(carrito));
 }
 
-.producto {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  width: 230px;
-  padding: 15px;
-  text-align: center;
-  transition: transform 0.3s;
+function vaciarCarrito() {
+  if (confirm("¿Vaciar el carrito?")) {
+    carrito = [];
+    guardarCarrito();
+    actualizarCarrito();
+  }
 }
 
-.producto:hover {
-  transform: translateY(-5px);
+function finalizarCompra() {
+  alert("✅ Gracias por tu compra. Nos contactaremos pronto.");
+  carrito = [];
+  guardarCarrito();
+  actualizarCarrito();
 }
 
-.producto img {
-  width: 100%;
-  border-radius: 8px;
-}
+paypal.Buttons({
+  createOrder: (data, actions) => {
+    const total = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+    return actions.order.create({
+      purchase_units: [{
+        amount: { value: (total / 4000).toFixed(2) } // Asumiendo tasa COP→USD
+      }]
+    });
+  },
+  onApprove: (data, actions) => {
+    return actions.order.capture().then(() => finalizarCompra());
+  }
+}).render("#paypal-button-container");
 
-button {
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  margin-top: 10px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-button.vaciar {
-  background: #dc3545;
-  color: white;
-  width: 100%;
-}
-
-button.finalizar {
-  background: #28a745;
-  color: white;
-  width: 100%;
-  margin-top: 10px;
-}
-
-button.agregar {
-  background: #007bff;
-  color: white;
-  width: 100%;
-}
+mostrarProductos();
+actualizarCarrito();
